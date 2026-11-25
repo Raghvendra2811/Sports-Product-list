@@ -1,95 +1,165 @@
+import { useState } from 'react'
 import { Box, Button, Card, Chip, Typography } from '@mui/material'
+import ProductDetail from './ProductDetail'
+import { formatPrice } from '../../utils'
 
-const condensedFont = '"Roboto Condensed", "Arial Narrow", Arial, sans-serif'
-
-function ProductCard({ product }) {
-  const title = product.title ?? product.name ?? 'Untitled product'
-  const description = product.description ?? ''
-  const image = product.image ?? product.imageUrl ?? product.thumbnail
-  const tags = Array.isArray(product.tags) ? product.tags : []
-  const discount = Number(product.discountPercentage ?? product.discount ?? 0)
-  const originalPrice = Number(product.originalPrice ?? product.price ?? 0)
-  const discountedPrice = originalPrice * (1 - discount / 100)
-  const formatPrice = (price) =>
-    `₹${price.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+function ProductCard({ product, onAddToCart }) {
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const { title, description, heroImage, tags, originalPrice, discountPercentage } = product
+  const discountedPrice = originalPrice * (1 - discountPercentage / 100)
+  const openDialog = () => setDialogOpen(true)
 
   return (
-    <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%', borderRadius: 0 }}>
-      <Box sx={{ position: 'relative', aspectRatio: '1', bgcolor: '#eee' }}>
-        {image && (
+    <>
+      <Card
+        component="article"
+        tabIndex={0}
+        aria-haspopup="dialog"
+        onClick={openDialog}
+        onKeyDown={(event) => {
+          if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) {
+            event.preventDefault()
+            openDialog()
+          }
+        }}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          borderRadius: 0,
+          cursor: 'pointer',
+          '&:focus-visible': { outline: '2px solid #446900', outlineOffset: 2 },
+        }}
+      >
+        <Box sx={{ position: 'relative', aspectRatio: '1', bgcolor: '#eee' }}>
           <Box
             component="img"
-            src={image}
+            src={heroImage}
             alt={title}
             sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
-        )}
-        {discount > 0 && (
-          <Chip
-            label={`${discount}% OFF`}
-            size="small"
+          {discountPercentage > 0 && (
+            <Chip
+              label={`${discountPercentage}% OFF`}
+              size="small"
+              sx={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                borderRadius: 0,
+                bgcolor: '#a5e82c',
+                fontWeight: 800,
+              }}
+            />
+          )}
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flex: 1,
+            flexDirection: 'column',
+            gap: 0.75,
+            p: { xs: 1.5, sm: 2 },
+          }}
+        >
+          <Box
             sx={{
-              position: 'absolute',
-              top: 1.5,
-              left: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              overflow: 'hidden',
+            }}
+          >
+            {tags.slice(0, 2).map((tag) => (
+              <Typography
+                key={tag}
+                variant="caption"
+                noWrap
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {tag}
+              </Typography>
+            ))}
+            {tags.length > 2 && (
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', flexShrink: 0 }}
+              >
+                +{tags.length - 2}
+              </Typography>
+            )}
+          </Box>
+
+          <Typography
+            variant="h6"
+            title={title}
+            noWrap
+            sx={{ textTransform: 'uppercase' }}
+          >
+            {title}
+          </Typography>
+          <Typography
+            variant="body2"
+            title={description}
+            noWrap
+            sx={{ color: 'text.secondary' }}
+          >
+            {description}
+          </Typography>
+
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'baseline',
+              flexWrap: 'wrap',
+              gap: 1,
+              my: 1,
+            }}
+          >
+            <Typography sx={{ fontSize: '1.2rem', fontWeight: 800 }}>
+              {formatPrice(discountedPrice)}
+            </Typography>
+            {discountPercentage > 0 && (
+              <>
+                <Typography
+                  sx={{ color: 'text.secondary', textDecoration: 'line-through' }}
+                >
+                  {formatPrice(originalPrice)}
+                </Typography>
+                <Typography sx={{ color: '#4c6900', fontWeight: 800 }}>
+                  {discountPercentage}% OFF
+                </Typography>
+              </>
+            )}
+          </Box>
+
+          <Button
+            variant="contained"
+            sx={{
+              mt: 'auto',
               borderRadius: 0,
               bgcolor: '#a5e82c',
-              fontFamily: condensedFont,
+              color: '#172000',
               fontWeight: 800,
+              '&:hover': { bgcolor: '#96d321' },
             }}
-          />
-        )}
-      </Box>
-
-      <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 0.75, p: { xs: 1.5, sm: 2 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, overflow: 'hidden' }}>
-          {tags.slice(0, 2).map((tag) => (
-            <Typography key={tag} variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
-              {tag}
-            </Typography>
-          ))}
-          {tags.length > 2 && (
-            <Typography variant="caption" sx={{ color: 'text.secondary', flexShrink: 0 }}>
-              +{tags.length - 2}
-            </Typography>
-          )}
+          >
+            Add to Cart
+          </Button>
         </Box>
-
-        <Typography
-          title={title}
-          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: condensedFont, fontSize: '1.2rem', fontWeight: 700 }}
-        >
-          {title}
-        </Typography>
-        <Typography
-          title={description}
-          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontFamily: condensedFont }}
-        >
-          {description}
-        </Typography>
-
-        <Box sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 1, my: 1 }}>
-          <Typography sx={{ fontFamily: condensedFont, fontSize: '1.2rem', fontWeight: 800 }}>
-            {formatPrice(discountedPrice)}
-          </Typography>
-          {discount > 0 && (
-            <>
-              <Typography sx={{ color: 'text.secondary', textDecoration: 'line-through' }}>
-                {formatPrice(originalPrice)}
-              </Typography>
-              <Typography sx={{ color: '#4c6900', fontWeight: 800 }}>{discount}% OFF</Typography>
-            </>
-          )}
-        </Box>
-
-        <Button
-          variant="contained"
-          sx={{ mt: 'auto', borderRadius: 0, bgcolor: '#a5e82c', color: '#172000', fontFamily: condensedFont, fontWeight: 800, '&:hover': { bgcolor: '#96d321' } }}
-        >
-          Add to Cart
-        </Button>
-      </Box>
-    </Card>
+      </Card>
+      <ProductDetail
+        product={product}
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onAddToCart={onAddToCart}
+      />
+    </>
   )
 }
 

@@ -12,46 +12,60 @@ async function readResponse(response) {
 }
 
 export async function getProducts(setProducts) {
-  const response = await fetch(PRODUCT_URL)
-  const products = await readResponse(response)
-  setProducts(products)
+  try {
+    const response = await fetch(PRODUCT_URL)
+    const products = await readResponse(response)
+    setProducts(products)
+  } catch (error) {
+    console.error('Failed to load products:', error)
+  }
 }
 
 export async function getCart(setCartItems) {
-  const response = await fetch(CART_URL)
-  const cartItems = await readResponse(response)
-  setCartItems(cartItems)
+  try {
+    const response = await fetch(CART_URL)
+    const cartItems = await readResponse(response)
+    setCartItems(cartItems)
+  } catch (error) {
+    console.error('Failed to load cart:', error)
+  }
 }
 
 export async function addToCart(item) {
-  const response = await fetch(CART_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(item),
-  })
+  try {
+    const response = await fetch(CART_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    })
 
-  return readResponse(response)
+    return await readResponse(response)
+  } catch (error) {
+    console.error('Failed to add item to cart:', error)
+  }
 }
 
 export async function updateCartItem(itemId, updates) {
-  const response = await fetch(`${CART_URL}/${itemId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(updates),
-  })
+  try {
+    const response = await fetch(`${CART_URL}/${itemId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
 
-  return readResponse(response)
+    return await readResponse(response)
+  } catch (error) {
+    console.error('Failed to update cart item:', error)
+  }
 }
 
 export async function removeFromCart(itemId) {
-  const response = await fetch(`${CART_URL}/${itemId}`, {
-    method: 'DELETE',
-  })
+  try {
+    const response = await fetch(`${CART_URL}/${itemId}`, { method: 'DELETE' })
 
-  return readResponse(response)
+    return await readResponse(response)
+  } catch (error) {
+    console.error('Failed to remove cart item:', error)
+  }
 }
 
