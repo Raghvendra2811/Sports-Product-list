@@ -1,19 +1,24 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   Box,
-  Button,
   Divider,
   IconButton,
   SvgIcon,
   SwipeableDrawer,
   Typography,
 } from '@mui/material'
+import Button from '../../components/Button'
 import { removeFromCart, updateCartItem } from '../../utils/api'
 import { formatPrice } from '../../utils'
 import CartItemCard from './CartItemCard'
+import OrderConfirmation from '../order/OrderConfirmation'
 
 function CartList({ cartItems, itemCount, setCartItems, open, onOpen, onClose }) {
-  const [updating, setUpdating] = useState(false)
+  const [busyItems, setBusyItems] = useState([])
+  const [placingOrder, setPlacingOrder] = useState(false)
+  const [orderedItems, setOrderedItems] = useState([])
+  const [orderConfirmed, setOrderConfirmed] = useState(false)
+  const confirmationPending = useRef(false)
   const originalSubtotal = cartItems.reduce(
     (total, item) => total + item.originalPrice * item.quantity,
     0,
@@ -25,7 +30,7 @@ function CartList({ cartItems, itemCount, setCartItems, open, onOpen, onClose })
   const discountTotal = originalSubtotal - payableTotal
 
   async function handleQuantityChange(item, change) {
-    setUpdating(true)
+    setBusyItems((ids) => [...ids, item.id])
     const quantity = Number(item.quantity) + change
     if (quantity < 1) {
       const removedItem = await removeFromCart(item.id)
@@ -36,23 +41,45 @@ function CartList({ cartItems, itemCount, setCartItems, open, onOpen, onClose })
         setCartItems((items) => items.map((entry) => entry.id === item.id ? updatedItem : entry))
       }
     }
-    setUpdating(false)
+    setBusyItems((ids) => ids.filter((id) => id !== item.id))
   }
 
-  async function handleRemove(item) {
-    setUpdating(true)
-    const removedItem = await removeFromCart(item.id)
-    if (removedItem) setCartItems((items) => items.filter((entry) => entry.id !== item.id))
-    setUpdating(false)
+  function handleRemove(item) {
+    handleQuantityChange(item, -Number(item.quantity))
+  }
+
+  async function handlePlaceOrder() {
+    setPlacingOrder(true)
+    const items = [...cartItems]
+    const results = await Promise.all(items.map((item) => removeFromCart(item.id)))
+    const remainingItems = items.filter((_, index) => !results[index])
+    setCartItems(remainingItems)
+    if (remainingItems.length === 0) {
+      setOrderedItems(items)
+      confirmationPending.current = true
+      onClose()
+    }
+    setPlacingOrder(false)
   }
 
   return (
-    <SwipeableDrawer
+    <>
+      <SwipeableDrawer
       anchor="right"
       open={open}
       onClose={onClose}
       onOpen={onOpen}
-      PaperProps={{ sx: { width: { xs: '100vw', sm: 480 }, maxWidth: '100vw' } }}
+      slotProps={{
+        transition: {
+          onExited: () => {
+            if (confirmationPending.current) {
+              confirmationPending.current = false
+              setOrderConfirmed(true)
+            }
+          },
+        },
+      }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: '100vw', sm: 480 }, maxWidth: '100vw' } }}
     >
       <Box sx={{ display: 'flex', height: '100%', flexDirection: 'column', bgcolor: '#f7f7f8', p: { xs: 1.5, sm: 2 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5 }}>
@@ -79,9 +106,8 @@ function CartList({ cartItems, itemCount, setCartItems, open, onOpen, onClose })
               </Typography>
             </Box>
             <Button
-              variant="contained"
               onClick={onClose}
-              sx={{ mt: 2, px: 4, py: 1.25, borderRadius: 0, bgcolor: '#a5e82c', color: '#172000', fontWeight: 800, '&:hover': { bgcolor: '#96d321' } }}
+              sx={{ mt: 2, px: 4, py: 1.25 }}
             >
               Continue Shopping
             </Button>
@@ -93,7 +119,7 @@ function CartList({ cartItems, itemCount, setCartItems, open, onOpen, onClose })
                 <CartItemCard
                   key={item.id}
                   item={item}
-                  disabled={updating}
+                  disabled={busyItems.includes(item.id) || placingOrder}
                   onQuantityChange={handleQuantityChange}
                   onRemove={handleRemove}
                 />
@@ -120,11 +146,28 @@ function CartList({ cartItems, itemCount, setCartItems, open, onOpen, onClose })
                 <Typography sx={{ fontWeight: 700 }}>Final Payable Amount</Typography>
                 <Typography sx={{ fontSize: '1.25rem', fontWeight: 800 }}>{formatPrice(payableTotal)}</Typography>
               </Box>
+              <Button
+                fullWidth
+                disabled={placingOrder || busyItems.length > 0}
+                onClick={handlePlaceOrder}
+                sx={{ mt: 1.5, py: 1.25 }}
+              >
+                {placingOrder ? 'Placing Order…' : 'Place Order'}
+              </Button>
             </Box>
           </>
         )}
       </Box>
-    </SwipeableDrawer>
+      </SwipeableDrawer>
+      <OrderConfirmation
+        open={orderConfirmed}
+        items={orderedItems}
+        onContinue={() => {
+          setOrderConfirmed(false)
+          onClose()
+        }}
+      />
+    </>
   )
 }
 

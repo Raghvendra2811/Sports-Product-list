@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Box, Button, Chip, Dialog, IconButton, Typography } from '@mui/material'
+import { Box, Button as MuiButton, Chip, Dialog, IconButton, Typography } from '@mui/material'
+import Button from '../../components/Button'
 import { formatPrice } from '../../utils'
 
 function ProductDetail({ product, open, onClose, onAddToCart }) {
@@ -103,7 +104,7 @@ function ProductDetail({ product, open, onClose, onAddToCart }) {
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {sizes.map((size) => (
-                <Button
+                <MuiButton
                   key={size}
                   aria-pressed={selectedSize === size}
                   onClick={() => setSelectedSize(size)}
@@ -118,18 +119,17 @@ function ProductDetail({ product, open, onClose, onAddToCart }) {
                   }}
                 >
                   {size}
-                </Button>
+                </MuiButton>
               ))}
             </Box>
           </Box>
 
           <Box sx={{ mt: 'auto', pt: 4 }}>
             <Button
-              variant="contained"
               fullWidth
               disabled={adding || (sizes.length > 0 && !selectedSize)}
               onClick={handleAddToCart}
-              sx={{ pt: 1.5, pb: 1.5, borderRadius: 0, bgcolor: '#a5e82c', color: '#172000', fontSize: '1rem', fontWeight: 800, '&:hover': { bgcolor: '#96d321' } }}
+              sx={{ pt: 1.5, pb: 1.5, fontSize: '1rem' }}
             >
               {adding ? 'Adding…' : 'Add to Cart'}
             </Button>

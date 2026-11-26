@@ -22,7 +22,7 @@ function CartItemCard({ item, disabled, onQuantityChange, onRemove }) {
       />
       <Box sx={{ display: 'flex', minWidth: 0, flexDirection: 'column', justifyContent: 'space-between' }}>
         <Box>
-          <Typography variant="h6" noWrap title={item.title}>
+          <Typography variant="h6" noWrap title={item.title} sx={{ fontSize: '18px', lineHeight: '24px', fontWeight: 500 }}>
             {item.title}
           </Typography>
           <Typography variant="caption" color="text.secondary">

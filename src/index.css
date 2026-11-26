@@ -10,3 +10,19 @@ body {
   margin: 0;
   font-family: 'DM Sans', sans-serif;
 }
+
+.MuiTypography-root.MuiTypography-root,
+.MuiButton-root.MuiButton-root,
+.MuiInputBase-root.MuiInputBase-root,
+.MuiChip-root.MuiChip-root {
+  font-family: 'DM Sans', sans-serif;
+}
+
+.MuiTypography-root.MuiTypography-h6 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.MuiTypography-root.MuiTypography-body2 {
+  font-size: 12px;
+  line-height: 18px;
+}

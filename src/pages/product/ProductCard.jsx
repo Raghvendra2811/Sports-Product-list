@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Box, Button, Card, Chip, Typography } from '@mui/material'
+import { Box, Card, Chip, Typography } from '@mui/material'
+import Button from '../../components/Button'
 import ProductDetail from './ProductDetail'
 import { formatPrice } from '../../utils'
 
@@ -99,7 +100,7 @@ function ProductCard({ product, onAddToCart }) {
             variant="h6"
             title={title}
             noWrap
-            sx={{ textTransform: 'uppercase' }}
+            sx={{ fontSize: '18px', lineHeight: '24px', fontWeight: 500, textTransform: 'uppercase' }}
           >
             {title}
           </Typography>
@@ -139,15 +140,7 @@ function ProductCard({ product, onAddToCart }) {
           </Box>
 
           <Button
-            variant="contained"
-            sx={{
-              mt: 'auto',
-              borderRadius: 0,
-              bgcolor: '#a5e82c',
-              color: '#172000',
-              fontWeight: 800,
-              '&:hover': { bgcolor: '#96d321' },
-            }}
+            sx={{ mt: 'auto' }}
           >
             Add to Cart
           </Button>
